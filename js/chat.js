@@ -7,7 +7,8 @@ if (!token || !currentUser) {
 
 // Socket.io initialization
 // Socket.io initialization
-const socket = window.socket || io("http://localhost:3000");
+const socket =
+  window.socket || io("https://skillbridge-backend-qovl.onrender.com");
 if (!window.socket) {
   window.socket = socket;
   socket.emit("joinChat", currentUser.id);
@@ -51,9 +52,12 @@ let contactsMap = {}; // Maps id -> { _id, name, profilePic, role }
 ================================= */
 async function loadContacts() {
   try {
-    const response = await fetch("http://localhost:3000/api/chat/contacts", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(
+      "https://skillbridge-backend-qovl.onrender.com/api/chat/contacts",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -169,7 +173,7 @@ async function loadChatHistory(contactId) {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/chat/history/${contactId}`,
+      `https://skillbridge-backend-qovl.onrender.com/api/chat/history/${contactId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -286,14 +290,17 @@ chatForm.addEventListener("submit", async (e) => {
   };
 
   try {
-    const response = await fetch("http://localhost:3000/api/chat/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const response = await fetch(
+      "https://skillbridge-backend-qovl.onrender.com/api/chat/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(msgData),
       },
-      body: JSON.stringify(msgData),
-    });
+    );
     const savedMsg = await response.json();
 
     renderMessage(savedMsg);
@@ -328,14 +335,17 @@ fileInput.addEventListener("change", (e) => {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/chat/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "https://skillbridge-backend-qovl.onrender.com/api/chat/send",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(msgData),
         },
-        body: JSON.stringify(msgData),
-      });
+      );
       const savedMsg = await response.json();
 
       renderMessage(savedMsg);

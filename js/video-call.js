@@ -47,7 +47,8 @@ if (remoteUserLabel) {
   remoteUserLabel.textContent = userRole === "Student" ? "Mentor" : "Student";
 }
 
-const socket = window.socket || io("http://localhost:3000");
+const socket =
+  window.socket || io("https://skillbridge-backend-qovl.onrender.com");
 if (!window.socket) {
   window.socket = socket;
   if (currentUser) socket.emit("joinChat", currentUser.id);
