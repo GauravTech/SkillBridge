@@ -27,7 +27,7 @@ const razorpayInstance = new Razorpay({
 const app = express();
 app.use(
   cors({
-    origin: "https://your-frontend-domain.onrender.com",
+    origin: "https://skillbridge-frontend-pi.vercel.app",
     credentials: true,
   }),
 );
@@ -40,7 +40,7 @@ app.use(express.static(__dirname));
 const server = http.createServer(app);
 const io = socketio(server, {
   cors: {
-    origin: "https://your-frontend-domain.onrender.com",
+    origin: "https://skillbridge-frontend-pi.vercel.app",
   },
 });
 
