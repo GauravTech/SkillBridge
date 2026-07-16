@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skill-Bridge | Connect. Learn. Grow.</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <div class="logo">
+          <img
+            src="assets/images/SB_logo.png"
+            alt="Skill-Bridge Logo"
+            class="logo-img"
+          />
+          Skill Bridge
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="#mentors">Mentors</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="login.html">Login</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="container">
+        <h1 class="fade-in">Master New Skills with Expert Mentors</h1>
+        <p class="fade-in">
+          Bridge the gap between learning and mastery through 1-on-1
+          personalized guidance.
+        </p>
+        <br />
+        <a href="login.html" class="btn">Get Started Now</a>
+      </div>
+    </section>
+
+    <!-- Top Mentors -->
+    <section id="mentors" class="mentors fade-in">
+      <div class="container">
+        <h2>Top Mentors</h2>
+        <div class="mentor-cards">
+          <div class="card">
+            <img src="assets/images/mentor1.jpeg" alt="Mentor 1" />
+            <h3>Rohit Yadav</h3>
+            <p>Full-Stack Web-Developer</p>
+            <div class="rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+          </div>
+          <div class="card">
+            <img src="assets/images/mentor2.jpeg" alt="Mentor 2" />
+            <h3>Rajesh Kushwaha</h3>
+            <p>Data Scientist</p>
+            <div class="rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+          <div class="card">
+            <img src="assets/images/mentor3.jpeg" alt="Mentor 3" />
+            <h3>Paresh Tiwary</h3>
+            <p>UI/UX Designer</p>
+            <div class="rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="container" style="padding: 80px 0">
+      <h2
+        style="
+          text-align: center;
+          color: var(--primary-color);
+          margin-bottom: 50px;
+        "
+      >
+        How It Works
+      </h2>
+      <div
+        class="grid"
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 40px;
+        "
+      >
+        <div class="step" style="text-align: center">
+          <div
+            style="
+              width: 70px;
+              height: 70px;
+              background: #eef5ff;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 20px;
+            "
+          >
+            <i
+              class="fas fa-user-check"
+              style="color: var(--accent-color); font-size: 1.5rem"
+            ></i>
+          </div>
+          <h3>Create Account</h3>
+          <p style="color: var(--text-muted)">
+            Sign up as a student or mentor to join the bridge.
+          </p>
+        </div>
+        <div class="step" style="text-align: center">
+          <div
+            style="
+              width: 70px;
+              height: 70px;
+              background: #eef5ff;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 20px;
+            "
+          >
+            <i
+              class="fas fa-search"
+              style="color: var(--accent-color); font-size: 1.5rem"
+            ></i>
+          </div>
+          <h3>Find Match</h3>
+          <p style="color: var(--text-muted)">
+            Search by skills and book your preferred time.
+          </p>
+        </div>
+        <div class="step" style="text-align: center">
+          <div
+            style="
+              width: 70px;
+              height: 70px;
+              background: #eef5ff;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 20px;
+            "
+          >
+            <i
+              class="fas fa-video"
+              style="color: var(--accent-color); font-size: 1.5rem"
+            ></i>
+          </div>
+          <h3>Live Session</h3>
+          <p style="color: var(--text-muted)">
+            Connect 1-on-1 and start your learning journey.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer
+      id="contact"
+      style="
+        background: var(--primary-color);
+        color: white;
+        padding: 50px 0;
+        text-align: center;
+      "
+    >
+      <div class="container">
+        <p>&copy; 2025 Skill-Bridge. All rights reserved.</p>
+        <div style="margin-top: 20px">
+          <a href="#" style="color: #fff; margin: 0 10px"
+            ><i class="fab fa-linkedin"></i
+          ></a>
+          <a href="#" style="color: #fff; margin: 0 10px"
+            ><i class="fab fa-twitter"></i
+          ></a>
+          <a
+            href="mailto:contact@skillbridge.com"
+            style="color: #fff; margin: 0 10px"
+            ><i class="fas fa-envelope"></i
+          ></a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const loginBtns = document.querySelectorAll(
+          ".login-trigger-btn, #login-btn",
+        );
+
+        loginBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            // SET LOGIN STATUS
+            localStorage.setItem("isLoggedIn", "true");
+            alert("Login Successful! Redirecting to your Dashboard...");
+            window.location.href = "student-profile.html";
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

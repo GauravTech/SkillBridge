@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Video Call - Skill-Bridge</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/video-call.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto&display=swap" rel="stylesheet" />
+  <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  <!-- <script>
+    if (!localStorage.getItem('loggedInStudent') && !localStorage.getItem('loggedInMentor')) {
+      window.location.href = "login.html";
+    }
+  </script> -->
+</head>
+<body>
+
+<header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <img src="assets/images/SB_logo.png" alt="Skill-Bridge Logo" class="logo-img">
+                Skill Bridge
+            </div>
+            <nav>
+               <nav>
+            <ul class="nav-links">
+              <li><a href="#" id="home-link">Home</a></li>
+              <li><a href="chat.html" >Chats</a></li>
+              <li><a href="video-call.html" class="active">Video Call</a></li>
+            </ul>
+          </nav>
+            </nav>
+        </div>
+    </header>
+
+<div class="video-call-container">
+  <div class="video-area">
+    <div class="video-frame remote-video">
+      <video autoplay playsinline></video>
+       <div class="video-label" id="remote-user-label">Remote User</div>
+    </div>
+    <div class="video-frame local-video">
+      <video autoplay playsinline muted></video>
+    <div class="video-label" id="local-user-label">You</div>
+    </div>
+
+    <div class="call-controls">
+  <button id="start-call" class="control-btn start" aria-label="Start Call"><i class="fas fa-phone"></i></button>
+  <button id="end-call" class="control-btn end" aria-label="End Call"><i class="fas fa-phone-slash"></i></button>
+  <button id="mute-audio" class="control-btn" aria-label="Toggle Mute"><i class="fas fa-microphone-slash"></i></button>
+  <button id="toggle-video" class="control-btn" aria-label="Toggle Video"><i class="fas fa-video-slash"></i></button>
+  <button id="toggle-chat" class="control-btn" aria-label="Toggle Chat">
+    <i class="fas fa-comment"></i>
+  </button>
+  <span id="timer">00:00</span>
+  <button id="screen-share" class="control-btn" aria-label="Share Screen"><i class="fas fa-desktop"></i></button>
+</div>
+
+  </div>
+
+ <div class="side-chat">
+  <h3>Chat</h3>
+ </br>
+  <div id="side-chat-messages" class="chat-messages"></div>
+  <form id="side-chat-form" class="chat-input">
+  <button type="button" id="file-btn" title="Send File" style="margin-right: 5px;"><i class="fas fa-paperclip"></i></button>
+  
+  <input type="file" id="side-file-input" style="display:none;" />
+  <input id="side-message-input" type="text" placeholder="Type a message..." autocomplete="off" />
+  <button type="submit">Send</button>
+</form>
+</div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="image-modal" class="image-modal hidden">
+  <img id="modal-image" src="" alt="Full preview">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+<script src="https://cdn.socket.io/4.7.0/socket.io.min.js"></script>
+<script src="js/call-listener.js"></script>
+<script src="js/video-call.js"></script>
+</body>
+</html>

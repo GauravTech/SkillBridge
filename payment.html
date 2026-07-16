@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment - Skill-Bridge</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"> 
+  <link rel="stylesheet" href="css/payment.css"> 
+</head>
+<body>
+
+<header class="navbar">
+  <div class="container">
+    <div class="logo">
+      <img src="assets/images/SB_logo.png" alt="Skill-Bridge Logo" class="logo-img">
+      Skill-Bridge
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="student-profile.html">Profile</a></li>
+        <li><a href="#" class="active">Payment</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="payment-container">
+  
+  <!-- Left Side: Booking Summary -->
+  <div class="booking-summary">
+    <div class="summary-card">
+      <h2><i class="fas fa-calendar-check"></i> Booking Summary</h2>
+      
+      <div class="mentor-info-summary">
+        <img id="mentor-img-summary" src="" alt="Mentor" class="mentor-img-summary">
+        <div class="mentor-details-summary">
+          <h3 id="mentor-name-summary">Ajay Yadav</h3>
+          <p id="mentor-skill-summary">Expert in React & Frontend Performance</p>
+          <div class="rating-summary">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+            <span id="mentor-rating-summary">4.5</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="session-details">
+        <div class="detail-row">
+          <span class="detail-label"><i class="fas fa-clock"></i> Session Duration:</span>
+          <span class="detail-value" id="session-duration">1 hour</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label"><i class="fas fa-calendar-alt"></i> Date & Time:</span>
+          <span class="detail-value" id="session-datetime">Today at 2:00 PM IST</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label"><i class="fas fa-tag"></i> Session Type:</span>
+          <span class="detail-value" id="session-type">One-on-One</span>
+        </div>
+      </div>
+
+      <div class="pricing-breakdown">
+        <div class="price-row">
+          <span>Session Fee:</span>
+          <span id="session-price">₹800</span>
+        </div>
+        <div class="price-row">
+          <span>Platform Fee:</span>
+          <span id="platform-fee">₹50</span>
+        </div>
+        <div class="price-row total">
+          <span>Total Amount:</span>
+          <span id="total-amount">₹850</span>
+        </div>
+      </div>
+
+      <div class="security-badge">
+        <i class="fas fa-shield-alt"></i>
+        <span>Secure Payment • SSL Encrypted</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Payment Form -->
+  <div class="payment-form-section">
+    <div class="payment-card">
+      <h2><i class="fas fa-credit-card"></i> Payment Details</h2>
+      
+      <div class="payment-methods" style="display:none;">
+        <!-- Hidden as Razorpay handles methods -->
+      </div>
+
+      <div class="payment-summary-info">
+        <p>You will be securely redirected to Razorpay to complete your transaction. All major credit cards, debit cards, UPI, and wallets are supported.</p>
+      </div>
+
+      <button id="razorpay-checkout-btn" class="pay-now-btn" style="margin-top: 20px;">
+        <i class="fas fa-lock"></i> Pay ₹<span id="pay-amount-final">0</span>
+      </button>
+
+      <div class="form-error" id="payment-error"></div>
+    </div>
+
+    <!-- Back Button -->
+    <a href="student-profile.html" class="back-link">
+      <i class="fas fa-arrow-left"></i> Back to Booking
+    </a>
+  </div>
+
+</div>
+
+<!-- Success Modal -->
+<div id="success-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="success-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <h2>Payment Successful!</h2>
+    <p>Your session has been booked successfully.</p>
+    <div class="booking-id">
+      <strong>Booking ID:</strong> <span id="booking-id">SB-2025-001234</span>
+    </div>
+    <div class="modal-actions">
+      <a href="student-profile.html" class="btn primary">Go to Dashboard</a>
+      <button class="btn secondary" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="js/main.js"></script>
+<script src="js/payment.js"></script>
+</body>
+</html>
+

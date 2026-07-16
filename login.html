@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Skill-Bridge</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <p>Login to your Skill-Bridge account</p>
+            </div>
+
+           <form id="login-form">
+    <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
+    </div>
+
+    <div class="input-group">
+        <label>Password</label>
+        <div class="password-field">
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('password', this)"></i>
+        </div>
+    </div>
+
+    <div style="text-align: right; margin-bottom: 15px;">
+        <a href="forgot-password.html" style="font-size: 0.85rem; color: var(--accent-color); text-decoration: none; font-weight: 500;">Forgot Password?</a>
+    </div>
+
+    <p id="login-error" style="color: #d63031; display: none; margin-bottom: 15px; text-align: center; font-size: 0.9rem;"></p>
+
+    <button type="submit" class="auth-btn">Sign In</button>
+</form>
+
+            <div class="auth-footer">
+                New to Skill-Bridge? <a href="signup.html">Create an account</a>
+            </div>
+        </div>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>

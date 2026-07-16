@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      // AUTH GUARD: Ensure the user is a logged-in student
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("currentUser"));
+      if (!token || !user || user.role !== "mentor") {
+        window.location.href = "login.html";
+      }
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mentor Dashboard - Skill-Bridge</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500,600&family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/mentor.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <div class="logo">
+          <img
+            src="assets/images/SB_logo.png"
+            alt="Skill-Bridge Logo"
+            class="logo-img"
+          />
+          Skill Bridge
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="mentor-profile.html" class="active">Profile</a></li>
+            <li><a href="chat.html">Chats</a></li>
+            <li><a href="#" id="logout-btn">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+      <div class="dashboard-content">
+        <section class="profile-container">
+          <div class="profile-summary-section">
+            <div class="profile-pic-container">
+              <label for="upload-pic">
+                <img
+                  src="assets/images/default-avatar.png"
+                  id="profile-picture"
+                  alt="Profile Picture"
+                />
+                <div class="upload-overlay">Click to Change</div>
+              </label>
+
+              <input
+                type="file"
+                id="upload-pic"
+                accept="image/*"
+                style="display: none"
+              />
+            </div>
+
+            <div class="profile-details-text">
+              <h2 id="profile-name-main">Loading Name...</h2>
+              <p id="profile-education" class="profile-edu-text"></p>
+              <div
+                class="rating"
+                id="profile-rating"
+                style="margin-bottom: 10px; color: #f1c40f"
+              ></div>
+              <p class="bio" id="profile-bio">Loading bio...</p>
+              <div class="skills-summary" id="profile-skills-summary"></div>
+            </div>
+
+            <div class="profile-progress">
+              <div class="progress-circle">
+                <span id="progress-text">0%</span>
+              </div>
+              <p>Profile Progress</p>
+            </div>
+          </div>
+
+          <div class="profile-tabs">
+            <button class="tab-link active" data-tab="edit-profile">
+              Edit Profile
+            </button>
+            <button class="tab-link" data-tab="incoming-requests">
+              Incoming Student Requests
+            </button>
+            <button class="tab-link" data-tab="activity-log">
+              My Sessions
+            </button>
+          </div>
+
+          <div id="edit-profile" class="profile-grid tab-panel active">
+            <div class="left-edit-panel">
+              <h3>Personal Information</h3>
+              <fieldset>
+                <legend>Basic Details</legend>
+                <label for="name-edit">Full Name:</label>
+                <input type="text" id="name-edit" class="edit-input" />
+
+                <label for="bio-edit">Bio/Description:</label>
+                <textarea
+                  id="bio-edit"
+                  class="edit-input"
+                  rows="5"
+                  maxlength="200"
+                ></textarea>
+                <div
+                  id="bio-counter"
+                  style="
+                    text-align: right;
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                    margin-top: 5px;
+                  "
+                >
+                  Words: <span id="word-count">0</span>/200
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Education Qualification</legend>
+                <label for="education-edit">Highest Qualification:</label>
+                <input
+                  type="text"
+                  id="education-edit"
+                  class="edit-input"
+                  placeholder="e.g. B.Tech in Computer Science, Stanford University"
+                />
+              </fieldset>
+
+              <fieldset>
+                <legend>Skills Management</legend>
+                <div id="skills-container" class="skills-edit-list">
+                  <button
+                    type="button"
+                    class="skill-tag add-skill"
+                    id="add-skill-btn"
+                  >
+                    + Add Skill
+                  </button>
+                </div>
+              </fieldset>
+
+              <div class="edit-actions">
+                <button id="edit-profile-btn" class="auth-btn">
+                  Enter Edit Mode
+                </button>
+                <button
+                  id="save-profile-btn"
+                  class="save-btn"
+                  style="display: none"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="incoming-requests"
+            class="detail-card tab-panel"
+            style="display: none"
+          >
+            <div class="mentor-header">
+              <h3>
+                <i class="fas fa-envelope-open-text"></i> Incoming Student
+                Requests
+              </h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem">
+                Review and manage session requests from students.
+              </p>
+            </div>
+
+            <div id="requests-list" class="activity-container">
+              <p class="empty-msg">No pending requests at the moment.</p>
+            </div>
+          </div>
+
+          <div id="activity-log" class="tab-panel" style="display: none">
+            <div class="activity-section">
+              <h3><i class="fas fa-calendar-check"></i> Active Sessions</h3>
+              <div id="active-sessions-list"></div>
+            </div>
+
+            <div class="activity-section" style="margin-top: 2rem">
+              <h3><i class="fas fa-history"></i> Session History</h3>
+              <div id="history-sessions-list"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.socket.io/4.7.0/socket.io.min.js"></script>
+    <script src="js/call-listener.js"></script>
+    <script src="js/mentor.js?v=2"></script>
+  </body>
+</html>

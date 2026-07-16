@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      // AUTH GUARD: Ensure the user is a logged-in student
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("currentUser"));
+      if (!token || !user || user.role !== "student") {
+        window.location.href = "login.html";
+      }
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard - Skill-Bridge</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500,600&family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/profile.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <div class="logo">
+          <img
+            src="assets/images/SB_logo.png"
+            alt="Skill-Bridge Logo"
+            class="logo-img"
+          />
+          Skill Bridge
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="student-profile.html" class="active">Profile</a></li>
+            <li><a href="chat.html">Chats</a></li>
+            <li><a href="#" id="logout-btn">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+      <div class="dashboard-content">
+        <section class="profile-container">
+          <div class="profile-summary-section">
+            <div class="profile-pic-container">
+              <label for="upload-pic">
+                <img
+                  src="assets/images/default-avatar.png"
+                  id="profile-picture"
+                  alt="Profile Picture"
+                />
+                <div class="upload-overlay">Click to Change</div>
+              </label>
+
+              <input
+                type="file"
+                id="upload-pic"
+                accept="image/*"
+                style="display: none"
+              />
+            </div>
+
+            <div class="profile-details-text">
+              <h2 id="profile-name-main">Loading Name...</h2>
+              <p class="bio" id="profile-bio">Loading bio...</p>
+              <div class="skills-summary" id="profile-skills-summary"></div>
+            </div>
+
+            <div class="profile-progress">
+              <div class="progress-circle">
+                <span id="progress-text">0%</span>
+              </div>
+              <p>Profile Progress</p>
+            </div>
+          </div>
+
+          <div class="profile-tabs">
+            <button class="tab-link active" data-tab="edit-profile">
+              Edit Profile
+            </button>
+            <button class="tab-link" data-tab="mentor-booking">
+              Find a Mentor
+            </button>
+            <button class="tab-link" data-tab="activity-log">
+              My Activity
+            </button>
+          </div>
+
+          <div id="edit-profile" class="profile-grid tab-panel active">
+            <div class="left-edit-panel">
+              <h3>Personal Information</h3>
+              <fieldset>
+                <legend>Basic Details</legend>
+                <label for="name-edit">Full Name:</label>
+                <input type="text" id="name-edit" class="edit-input" />
+
+                <label for="bio-edit">Bio/Description:</label>
+                <textarea id="bio-edit" class="edit-input" rows="5"></textarea>
+                <div
+                  id="bio-counter"
+                  style="
+                    text-align: right;
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                    margin-top: 5px;
+                  "
+                >
+                  Words: <span id="word-count">0</span>/200
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Skills Management</legend>
+                <div id="skills-container" class="skills-edit-list">
+                  <button
+                    type="button"
+                    class="skill-tag add-skill"
+                    id="add-skill-btn"
+                  >
+                    + Add Skill
+                  </button>
+                </div>
+              </fieldset>
+
+              <div class="edit-actions">
+                <button id="edit-profile-btn" class="auth-btn">
+                  Enter Edit Mode
+                </button>
+                <button
+                  id="save-profile-btn"
+                  class="save-btn"
+                  style="display: none"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="mentor-booking"
+            class="detail-card tab-panel"
+            style="display: none"
+          >
+            <div class="mentor-header">
+              <h3>Find a Mentor</h3>
+              <div class="mentor-search-controls">
+                <input
+                  type="text"
+                  id="mentor-search"
+                  placeholder="Search by name or skill..."
+                  class="edit-input"
+                />
+                <select id="mentor-filter" class="edit-input">
+                  <option value="all">All Expertise</option>
+                  <option value="web">Web Development</option>
+                  <option value="design">UI/UX Design</option>
+                </select>
+              </div>
+            </div>
+            <div class="mentor-list-grid" id="mentor-grid"></div>
+          </div>
+
+          <div id="activity-log" class="tab-panel" style="display: none">
+            <div class="profile-card">
+              <div class="activity-container">
+                <h3><i class="fas fa-calendar-check"></i> Active Sessions</h3>
+                <div id="active-sessions-list"></div>
+
+                <h3 style="margin-top: 30px">
+                  <i class="fas fa-history"></i> Session History
+                </h3>
+                <div id="history-sessions-list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="booking-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Book a Session</h2>
+        <p id="modal-mentor-name">Mentor:</p>
+
+        <form id="booking-form">
+          <div class="form-group">
+            <label>Select Date</label>
+            <input type="date" id="booking-date" required />
+          </div>
+          <div class="form-group">
+            <label>Select Time</label>
+            <input type="time" id="booking-time" required />
+          </div>
+          <div class="form-group">
+            <label>Topic of Discussion</label>
+            <textarea
+              id="booking-topic"
+              placeholder="e.g. Help with React Hooks"
+              required
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Duration (minutes)</label>
+            <input
+              type="number"
+              id="booking-duration"
+              min="10"
+              max="120"
+              step="5"
+              value="10"
+              required
+            />
+          </div>
+          <button type="submit" class="auth-btn">Confirm Booking</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="review-modal" class="modal-overlay" style="display: none">
+      <div class="modal-content" style="max-width: 500px">
+        <span
+          class="close-modal"
+          onclick="
+            document.getElementById('review-modal').style.display = 'none'
+          "
+          >&times;</span
+        >
+        <h2 id="modal-review-mentor-name">Mentor Reviews</h2>
+
+        <div
+          style="
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-top: 20px;
+          "
+        >
+          <div
+            style="
+              flex: 1;
+              text-align: center;
+              background: #f8f9fa;
+              padding: 20px;
+              border-radius: 10px;
+            "
+          >
+            <h3
+              style="font-size: 2.5rem; color: #f1c40f; margin: 0"
+              id="modal-mentor-rating"
+            >
+              4.5/5
+            </h3>
+            <p
+              style="
+                margin: 5px 0 0;
+                color: var(--text-muted);
+                font-weight: bold;
+              "
+            >
+              Overall Rating
+            </p>
+            <div style="color: #f1c40f; margin-top: 10px">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i
+              ><i class="fas fa-star"></i><i class="fas fa-star"></i
+              ><i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+
+          <div
+            style="
+              flex: 2;
+              height: 150px;
+              overflow-y: auto;
+              padding-right: 10px;
+            "
+          >
+            <h4 style="margin-top: 0">Student Reviews</h4>
+            <div
+              class="review-item"
+              style="
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+              "
+            >
+              <p style="margin: 0; font-size: 0.9rem; font-weight: bold">
+                Anonymous Student
+              </p>
+              <p style="margin: 5px 0 0; font-size: 0.85rem; color: #555">
+                Great session! The mentor explained the concepts really well.
+              </p>
+            </div>
+            <div
+              class="review-item"
+              style="
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+              "
+            >
+              <p style="margin: 0; font-size: 0.9rem; font-weight: bold">
+                Aman Kumar
+              </p>
+              <p style="margin: 5px 0 0; font-size: 0.85rem; color: #555">
+                Very helpful and patient.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.0/socket.io.min.js"></script>
+    <script src="js/call-listener.js"></script>
+    <script src="js/profile.js"></script>
+  </body>
+</html>

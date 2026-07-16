@@ -1,0 +1,406 @@
+/* =======================
+   CORE LAYOUT
+======================= */
+.chat-container {
+  display: flex;
+  flex-direction: row; /* LEFT → RIGHT */
+  flex-wrap: nowrap;
+  margin-top: 80px;
+  height: calc(100vh - 80px);
+  background: #f0f2f5;
+}
+/* =======================
+   SIDEBAR (LEFT)
+======================= */
+.chat-sidebar {
+  width: 320px;
+  min-width: 320px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  padding: 20px 0;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.chat-sidebar h3 {
+  padding: 0 20px 15px;
+  font-size: 1.2em;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.close-sidebar {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.4em;
+  cursor: pointer;
+}
+
+/* Conversation List */
+.conversation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chat-sidebar li {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 20px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.chat-sidebar li:hover,
+.chat-sidebar li.active {
+  background: #e9f0ff;
+}
+
+.chat-sidebar img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chat-sidebar .details {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-sidebar h4 {
+  margin: 0;
+  font-size: 1em;
+}
+
+.last-time {
+  font-size: 0.75em;
+  color: #999;
+}
+
+.last-message {
+  font-size: 0.85em;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status Dot */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: absolute;
+  right: 15px;
+  bottom: 18px;
+  border: 2px solid white;
+}
+
+.status-dot.online {
+  background: #4caf50;
+}
+.status-dot.offline {
+  background: #9e9e9e;
+}
+
+/* =======================
+   CHAT MAIN (RIGHT)
+======================= */
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f7f9fc;
+}
+
+/* =======================
+   CHAT HEADER
+======================= */
+.chat-header {
+  background: white;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.open-sidebar {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.4em;
+  color: #1a5276;
+  cursor: pointer;
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.name-status h4 {
+  margin: 0;
+}
+
+.name-status span {
+  font-size: 0.75em;
+  color: #4caf50;
+}
+
+.call-btn {
+  margin-left: auto;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 0.85em;
+}
+
+/* =======================
+   CHAT MESSAGES
+======================= */
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.message {
+  max-width: 65%;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message p {
+  padding: 10px 14px;
+  border-radius: 18px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.message .time {
+  font-size: 0.7em;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* Sent */
+.message.sent {
+  margin-left: auto;
+  align-items: flex-end;
+}
+
+.message.sent p {
+  background: #1a5276;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+/* Received */
+.message.received {
+  margin-right: auto;
+  align-items: flex-start;
+}
+
+.message.received p {
+  background: white;
+  border: 1px solid #eee;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+/* =======================
+   TYPING INDICATOR
+======================= */
+.typing-indicator {
+  padding: 10px 20px;
+  font-size: 0.85em;
+  color: #999;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* =======================
+   INPUT AREA
+======================= */
+.chat-input {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 25px;
+  border: 1px solid #ddd;
+  margin: 0 10px;
+}
+
+.attachment-btn,
+.send-btn {
+  background: none;
+  border: none;
+  color: #1a5276;
+  font-size: 1.4em;
+  cursor: pointer;
+}
+
+/* Attachment Menu */
+.attachment-wrapper {
+  position: relative;
+}
+
+.attachment-menu {
+  position: absolute;
+  bottom: 45px;
+  left: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+}
+
+.attachment-menu button {
+  padding: 10px 15px;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* =======================
+   RESPONSIVE (MOBILE)
+======================= */
+@media (max-width: 768px) {
+  .chat-container {
+    margin-top: 60px;
+    height: calc(100vh - 60px);
+  }
+
+  .chat-sidebar {
+    position: absolute;
+    left: -100%;
+    width: 80%;
+    height: 100%;
+    transition: left 0.3s ease;
+  }
+
+  .chat-sidebar.open {
+    left: 0;
+  }
+
+  .open-sidebar,
+  .close-sidebar {
+    display: block;
+  }
+
+  .header-avatar {
+    display: none;
+  }
+}
+/* =========================
+   IMAGE THUMBNAIL (CHAT)
+========================= */
+
+.message.image-message img {
+  max-width: 180px; /* SMALL thumbnail */
+  max-height: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.message.image-message img:hover {
+  transform: scale(1.03);
+}
+
+/* =========================
+   FULLSCREEN IMAGE MODAL
+========================= */
+
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.image-modal img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
+  object-fit: contain;
+  animation: zoomIn 0.25s ease;
+}
+
+.image-modal.hidden {
+  display: none;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===============================
+   CHAT IMAGE MESSAGE SIZE FIX
+================================= */
+
+.image-message img,
+.chat-image {
+  max-width: 220px; /* perfect chat size */
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  cursor: pointer;
+  display: block;
+}
+
+/* Align image properly inside message bubble */
+.message.sent .chat-image {
+  margin-left: auto;
+}
+
+.message.received .chat-image {
+  margin-right: auto;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .chat-image {
+    max-width: 180px;
+  }
+}
+
+audio,
+video {
+  max-width: 240px;
+  border-radius: 8px;
+  margin-top: 5px;
+}

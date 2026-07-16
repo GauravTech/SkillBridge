@@ -1,0 +1,551 @@
+:root {
+  /* Global Colors */
+  --primary-color: #1a5276; /* Skill-Bridge Blue */
+  --secondary-color: #50e3c2; /* Accent Teal/Green */
+  --danger-color: #e74c3c;
+  --success-color: #2ecc71;
+  --light-bg: #f5f7fa;
+  --white: #fff;
+  --dark-text: #333;
+  --gray-border: #ddd;
+
+  /* Global Layout/Component Values */
+  --navbar-height: 80px;
+  --border-radius: 8px;
+  --input-radius: 6px;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Global Button Base Styles */
+.btn {
+  padding: 10px 20px;
+  border-radius: var(--input-radius);
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn.primary {
+  background: var(--primary-color);
+  color: var(--white);
+}
+.btn.secondary {
+  background: var(--secondary-color);
+  color: var(--dark-text); /* Use dark text on light accent */
+}
+
+/* Global Chat Bubble Styles (Moved from chat.css/video-call.css) */
+.message {
+  margin-bottom: 15px;
+  max-width: 70%;
+}
+.message p {
+  padding: 10px 14px;
+  border-radius: 20px;
+  margin: 0;
+}
+.message.sent {
+  margin-left: auto;
+}
+.message.sent p {
+  background: var(--primary-color);
+  color: var(--white);
+}
+.message.received p {
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+}
+/* Note: Chat bubble styles are now in style.css */
+
+.video-call-container {
+  display: flex;
+  /* Using global variable */
+  margin-top: 80px;
+  /* Height adjusted for consistency with navbar and controls */
+  height: calc(100vh - 80px);
+}
+
+/* Video Area */
+.video-area {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
+}
+.video-frame {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-frame video {
+  width: 100%;
+  height: 100%;
+  background: #222;
+  object-fit: cover;
+}
+.video-label {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: transparent;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Small local video overlay in remote */
+.local-video {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  width: 200px;
+  height: 150px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 3px solid var(--primary-color);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+.local-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- Call Controls --- */
+.call-controls {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 100%;
+  height: 60px; /* Explicit height */
+  padding: 8px 8px;
+  background: var(--white);
+  border-radius: 30px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 15px;
+  box-shadow: var(--card-shadow);
+  z-index: 10;
+  transform: translateX(-50%);
+  max-width: 400px;
+  width: 90%;
+}
+.control-btn {
+  /* Using variables for primary color */
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+}
+.control-btn.end {
+  /* Using variables for end/danger color */
+  background: var(--danger-color);
+}
+.control-btn.start {
+  /* Using variables for start/success color */
+  background: var(--success-color);
+}
+.control-btn:hover {
+  opacity: 0.8;
+}
+.control-btn.muted {
+  background: var(--gray-border);
+  color: var(--dark-text);
+}
+.call-controls #screen-share.sharing {
+  background: var(--secondary-color); /* Highlight when active */
+  color: var(--dark-text);
+}
+#timer {
+  font-weight: bold;
+}
+
+/* --- Side Chat --- */
+.side-chat {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border-left: 1px solid var(--gray-border);
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+  padding: 15px;
+  z-index: 5;
+}
+.side-chat h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+  color: white;
+  text-align: center;
+}
+.side-chat .chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Input */
+.side-chat .chat-input {
+  display: flex;
+  align-items: center; /* Align items in the center */
+  padding-top: 15px;
+}
+.side-chat .chat-input input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  border-radius: var(--input-radius);
+  border: 1px solid var(--gray-border);
+  margin-right: 5px;
+}
+
+/* * --- START: SIDE CHAT STYLES (Merged from side-chat.css) --- 
+ */
+.side-chat {
+  /* * CONTAINER */
+  flex: 1;
+  background: #fcfcfc;
+  border-left: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  min-width: 280px;
+  max-width: 350px;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.side-chat h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+  color: var(--primary-color);
+}
+
+/* * MESSAGE AREA */
+#side-chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* * INDIVIDUAL MESSAGE */
+.message {
+  margin-bottom: 12px;
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-top: 15px;
+}
+
+.message .sender-name {
+  position: absolute;
+  top: 0;
+  font-size: 0.75em;
+  font-weight: bold;
+  color: #666;
+}
+
+/* Message Content (The Bubble) */
+.message-content {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.message-content p {
+  padding: 8px 12px;
+  border-radius: 15px;
+  margin: 0;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.message .time {
+  display: block;
+  font-size: 0.65em;
+  margin-top: 4px;
+  color: #999;
+  align-self: flex-end;
+}
+
+/* SENT MESSAGES (User's messages) */
+.message.sent {
+  align-self: flex-end;
+  margin-left: auto;
+}
+.message.sent .sender-name {
+  right: 0;
+  left: auto;
+}
+.message.sent .message-content p {
+  background: var(--primary-color);
+  color: white;
+  border-top-right-radius: 4px;
+}
+.message.sent .time {
+  align-self: flex-end;
+}
+
+/* RECEIVED MESSAGES (Other peer's messages) */
+.message.received {
+  align-self: flex-start;
+  margin-right: auto;
+}
+.message.received .sender-name {
+  left: 0;
+  right: auto;
+}
+.message.received .message-content p {
+  background: white;
+  border: 1px solid #ddd;
+  border-top-left-radius: 4px;
+}
+.message.received .time {
+  align-self: flex-start;
+}
+
+/* * FILE/IMAGE STYLES */
+.message-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px; /* Smoother rounded corners */
+  margin-top: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle depth */
+  border: none; /* Removing the thin border for a cleaner look */
+}
+.message-content a.btn.secondary {
+  align-self: flex-start;
+  padding: 5px 10px;
+  font-size: 0.8em;
+  margin-top: 5px;
+  text-decoration: none;
+}
+.message-content p.file-info {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: #eef2f5; /* Light gray background instead of dark blue */
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.message.sent .message-content,
+.message.received .message-content {
+  background: transparent; /* Allows the image to be the hero */
+  padding: 2px;
+}
+
+.message.sent .message-content p:not(.file-info) {
+  background: var(--primary-color);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 15px;
+}
+
+/* * INPUT AREA */
+.side-chat .chat-input {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.side-chat #side-message-input {
+  flex-grow: 1;
+  padding: 8px 10px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  margin-right: 5px;
+}
+
+.side-chat .chat-input button[type="submit"] {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* File Attach Button */
+.side-chat #file-btn {
+  background: none;
+  border: none;
+  font-size: 1.3em;
+  cursor: pointer;
+  color: var(--primary-color);
+  padding: 0 5px;
+  line-height: 1;
+}
+.side-chat #file-btn:hover {
+  opacity: 0.8;
+}
+
+.side-chat .chat-input button[type="submit"]:hover {
+  background: #3a7bd2; /* Slightly darker blue on hover */
+
+  /* * --- END: SIDE CHAT STYLES --- 
+ */
+
+  /* Lightbox Styles */
+  .overlay {
+    display: none;
+    position: fixed;
+    z-index: 2000; /* Above everything else */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+  }
+
+  .overlay-content {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  }
+
+  .close-overlay {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  /* Update your existing message img style to show it's clickable */
+  .message-content img {
+    cursor: zoom-in;
+    transition: transform 0.2s;
+  }
+
+  .message-content img:hover {
+    transform: scale(1.02);
+  }
+
+  /* --- ONLY APPLIES TO SMARTPHONES (Screens smaller than 600px) --- */
+  @media (max-width: 600px) {
+    /* 1. Reset the container so items don't sit side-by-side */
+    .video-call-container {
+      display: block; /* Change from flex to block */
+      position: relative;
+      height: 100vh;
+      margin-top: 0;
+      overflow: hidden;
+    }
+
+    /* 2. Make video area fill the entire screen */
+    .video-area {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* 3. Float your local video (the small box) */
+    .local-video {
+      width: 100px;
+      height: 140px;
+      bottom: 100px; /* Stay above the buttons */
+      right: 15px;
+      top: auto;
+      z-index: 10;
+    }
+
+    /* 4. Turn the side-chat into a mobile panel */
+    .side-chat {
+      position: fixed;
+      bottom: -100%; /* Hide it below the screen */
+      left: 0;
+      width: 100%;
+      height: 80vh;
+      max-width: none;
+      z-index: 100;
+      transition: bottom 0.3s ease;
+      border-radius: 20px 20px 0 0;
+    }
+
+    /* Use this class to slide the chat up */
+    .side-chat.active {
+      bottom: 0;
+    }
+
+    /* 5. Fix the controls position */
+    .call-controls {
+      position: absolute;
+      bottom: 20px;
+      z-index: 20;
+      width: 95%;
+      max-width: none;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(5px);
+    }
+  }
+}
+
+/* ===============================
+   IMAGE PREVIEW MODAL
+================================= */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  cursor: zoom-out;
+}
+
+.image-modal.hidden {
+  display: none;
+}
+
+.image-modal img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}

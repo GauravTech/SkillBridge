@@ -1,0 +1,760 @@
+:root {
+    /* Existing Accent Colors */
+    --primary-color: #1A5276; 
+    --accent-color: #4A90E2; 
+    --success-color: #2ECC71; 
+    --warning-color: #E74C3C; 
+    
+    /* LIGHT THEME COLORS */
+    --background-light: #F4F7F9; 
+    --card-light: #FFFFFF; 
+    --text-dark: #34495E; 
+    --text-muted: #5D6D7E; 
+    --border-light: #E0E0E0; 
+    --shadow-subtle: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-lift: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+body {
+    background-color: var(--background-light);
+    font-family: 'Roboto', sans-serif;
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* --- Layout Structure --- */
+.dashboard-wrapper {
+    display: flex;
+    min-height: calc(100vh - 70px);
+}
+
+.dashboard-content {
+    flex-grow: 1;
+    padding-top: 80px; /* Adjust this value to match your navbar height */
+    padding-bottom: 10px;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px; /* Reduced from 75px since padding handles it now */
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* --- Profile Summary Section (Top Card) --- */
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+
+.profile-summary-section {
+    background: var(--card-light);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lift);
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.profile-pic-container {
+   position: relative;
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0; /* ADD THIS LINE to prevent shrinking */
+    margin-right: 30px; /* Space between picture and text */
+    cursor: pointer;
+    border-radius: 50%; 
+    overflow: hidden;   
+    border: 3px solid var(--accent-color);
+    background-color: #eee;
+}
+
+#profile-picture {
+   width: 100%;
+    height: 100%;
+    object-fit: cover; /* Prevents image stretching */
+    display: block;
+}
+
+.upload-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    padding: 8px 0;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.profile-pic-container:hover .upload-overlay {
+    opacity: 1;
+}
+
+.profile-details-text {
+    flex-grow: 1;
+    min-width: 0; /* Allows text to wrap properly inside flex containers */
+}
+
+#profile-name-main {
+    font-family: 'Poppins', sans-serif;
+    color: var(--primary-color);
+    margin: 0 0 5px 0;
+}
+
+.bio {
+   color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.5;
+    word-wrap: break-word; /* Prevents long words from breaking the layout */
+    hyphens: auto;
+    text-align: justify;
+}
+
+/* --- Circular Progress Bar --- */
+.profile-progress {
+    text-align: center;
+    margin-left: 30px;
+}
+
+.progress-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    /* conic-gradient is updated by JS to show progress percentage */
+    background: conic-gradient(var(--accent-color) 0deg, #e0e0e0 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin: 0 auto 10px;
+}
+
+.progress-circle::before {
+    content: "";
+    position: absolute;
+    width: 65px;
+    height: 65px;
+    background: var(--card-light);
+    border-radius: 50%;
+}
+
+#progress-text {
+    position: relative;
+    z-index: 1;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+/* --- Tab Navigation --- */
+.profile-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    transition: 0.3s;
+}
+
+.tab-link.active {
+    color: var(--accent-color);
+    border-bottom: 3px solid var(--accent-color);
+}
+
+
+/* --- Forms & Edit Panels --- */
+.detail-card, .left-edit-panel {
+    background: var(--card-light);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lift);
+}
+
+fieldset {
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+legend {
+    font-weight: 600;
+    padding: 0 10px;
+    color: var(--primary-color);
+}
+
+.edit-input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    font-family: inherit;
+}
+
+/* Ensure the textarea matches the justified text's footprint */
+#bio-edit {
+    width: 100%;
+    min-height: 120px;
+    font-family: inherit; /* Matches the Poppins/Roboto font */
+    font-size: 0.95rem;
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    resize: vertical; /* Allows user to adjust height but not width */
+}
+
+/* Specific styling for the counter to keep it neat */
+#bio-counter {
+    font-variant-numeric: tabular-nums; /* Prevents text jumping as numbers change */
+}
+
+/* --- Skills Management UI --- */
+.skills-edit-list, .skills-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.skill-tag {
+    background: #E8F0FE;
+    color: var(--primary-color);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.skill-input-inline {
+    border: 1px dashed var(--accent-color);
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.9rem;
+    outline: none;
+    width: 120px;
+    background: transparent;
+    font-family: inherit;
+}
+.remove-skill {
+    background: var(--warning-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-skill {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* --- Mentor Search & Cards --- */
+.mentor-search-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    align-items: center;
+}
+#mentor-search {
+    flex: 2; /* Takes up 2/3 of the space */
+    margin-top: 40px; /* Removes default margins that might be pushing it */
+    padding: 12px 15px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+
+/* Specific styling for the Dropdown */
+#mentor-filter {
+    flex: 2; /* Takes up 1/3 of the space */
+    margin-top: 40px;
+    padding: 12px 15px;
+    background-color: white;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Hover/Focus states for better UX */
+.mentor-search-controls .edit-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+/* Container Grid */
+#mentor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 20px 0;
+}
+
+/* Main Card Style */
+.mentor-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.mentor-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #4f46e5;
+}
+
+/* Header: Avatar and Name */
+.mentor-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.mentor-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #f3f4f6;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.mentor-title h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #111827;
+    font-weight: 600;
+}
+
+.role-badge {
+    font-size: 0.75rem;
+    color: #4f46e5;
+    background: #eef2ff;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+/* Body: Bio and Skills */
+.mentor-body {
+    flex-grow: 1; /* Pushes footer to bottom */
+}
+
+.mentor-bio-text {
+    font-size: 0.9rem;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Clips long bios to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.mentor-skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.skill-pill {
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Footer: Button */
+.book-btn {
+    width: 100%;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.book-btn:hover {
+    background: #4338ca;
+}
+
+.book-btn i {
+    font-size: 0.8rem;
+}
+
+/* --- Buttons --- */
+.auth-btn, .save-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.auth-btn { background: var(--accent-color); color: white; }
+.save-btn { background: var(--success-color); color: white; }
+
+.auth-btn:hover { background: #357ABD; }
+.save-btn:hover { background: #27AE60; }
+
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    z-index: 9999;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.toast-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* --- Modals --- */
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.2s;
+}
+.close-modal:hover {
+    color: var(--warning-color); /* Turns red/orange on hover */
+}
+
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+.form-group input, .form-group textarea {
+    width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;
+}
+
+
+/* === ACTIVITY TAB CONTAINER === */
+.tab-panel {
+    padding: 20px;
+    width: 100%;
+}
+/* Container styling */
+.activity-container {
+    padding: 10px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Individual Card Styling */
+.session-card {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #edf2f7;
+    transition: transform 0.2s ease;
+}
+
+.session-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+/* The Date Box (Left Side) */
+.session-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    min-width: 70px;
+    height: 70px;
+    margin-right: 25px;
+}
+
+.session-date .month {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #e53e3e; /* Red for the month */
+    text-transform: uppercase;
+}
+
+.session-date .day {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #2d3748;
+}
+
+/* Details Section (Center) */
+.session-details {
+    flex-grow: 1;
+}
+
+.session-details h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: #1a202c;
+}
+
+.session-details p {
+    margin: 2px 0;
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+.session-details i {
+    margin-right: 5px;
+    color: #4a5568;
+}
+
+/* Actions Section (Right Side) */
+.session-actions {
+    text-align: right;
+    min-width: 150px;
+}
+
+.status-tag {
+    font-style: italic;
+    font-size: 0.85rem;
+    color: #a0aec0;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.join-btn {
+    background: #3182ce;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.join-btn:hover {
+    background: #2b6cb0;
+}
+
+#activity-log h3 {
+    font-size: 1.25rem;
+    color: #2d3748;
+    margin: 30px 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #edf2f7;
+}
+
+.empty-msg {
+    text-align: center;
+    padding: 40px;
+    color: #a0aec0;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 2px dashed #e2e8f0;
+}
+
+/* Actvivty */
+
+/* Ensure the Activity Tab uses the same background as the others */
+#activity-log {
+    background: white; /* or the specific color your other tabs use */
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Match your dashboard shadow */
+    margin-top: 20px;
+}
+
+/* Fix the card internal background so they don't blend into the tab background */
+.session-card {
+    background-color: #ffffff;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+}
+
+
+/* Date Box inside Card */
+.session-date {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-width: 60px;
+    text-align: center;
+    padding: 5px;
+    margin-right: 20px;
+}
+
+.session-date .month {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #e74c3c;
+    text-transform: uppercase;
+}
+
+.session-date .day {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Details inside Card */
+.session-details {
+    flex-grow: 1;
+}
+
+.session-details h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.session-details p {
+    margin: 2px 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Action Buttons/Tags */
+.session-actions {
+    margin-left: 20px;
+}
+
+.join-btn {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.join-btn:hover {
+    background: #357abd;
+}
+
+.status-tag {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #888;
+}
+
+/* Empty State Styling */
+.empty-msg {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    background: #fdfdfd;
+    border: 2px dashed #eee;
+    border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-summary-section { flex-direction: column; text-align: center; }
+    .profile-pic { margin: 0 0 15px 0; }
+    .profile-progress { margin: 20px 0 0 0; }
+    .mentor-search-controls { flex-direction: column; }
+    .mentor-search-controls {
+        flex-direction: column; /* Stacks search and filter on small screens */
+        gap: 10px;
+    }
+    
+    #mentor-search, #mentor-filter {
+        width: 100%; /* Ensures they take full width on mobile */
+        flex: none;
+    }
+}
+
+
+

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat - Skill-Bridge</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/chat.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <!-- <script>
+    if (!localStorage.getItem('loggedInStudent') && !localStorage.getItem('loggedInMentor')) {
+      window.location.href = "login.html";
+    }
+  </script> -->
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <div class="logo">
+          <img
+            src="assets/images/SB_logo.png"
+            alt="Skill-Bridge Logo"
+            class="logo-img"
+          />
+          Skill Bridge
+        </div>
+        <nav>
+          <nav>
+            <ul class="nav-links">
+              <li><a href="#" id="home-link">Home</a></li>
+              <li><a href="chat.html" class="active">Chats</a></li>
+              <li><a href="video-call.html">Video Call</a></li>
+            </ul>
+          </nav>
+        </nav>
+      </div>
+    </header>
+
+    <div class="chat-container">
+      <!-- Sidebar -->
+      <aside class="chat-sidebar">
+        <button class="close-sidebar" aria-label="Close conversations">
+          <i class="fas fa-times"></i>
+        </button>
+        <h3>Conversations</h3>
+        <ul class="conversation-list">
+          <!-- Contacts will be loaded dynamically via chat.js -->
+        </ul>
+      </aside>
+
+      <!-- Main Chat Section -->
+      <section class="chat-main">
+        <div class="chat-header">
+          <button class="open-sidebar" aria-label="Open conversations">
+            <i class="fas fa-bars"></i>
+          </button>
+          <img
+            src="assets/images/default-avatar.png"
+            alt="Loading..."
+            class="header-avatar"
+            id="profile-avatar"
+          />
+          <div class="name-status">
+            <h4 id="chat-name">Loading...</h4>
+            <span class="status online" id="chat-status"
+              ><i class="fas fa-circle"></i> Connecting</span
+            >
+          </div>
+          <a href="video-call.html" class="btn secondary call-btn">
+            <i class="fas fa-video"></i> Call
+          </a>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <!-- Typing Indicator -->
+        <div id="typing-indicator" class="typing-indicator hidden">
+          <p>Typing<span>.</span><span>.</span><span>.</span></p>
+        </div>
+
+        <!-- Input -->
+        <form id="chat-form" class="chat-input">
+          <div class="attachment-wrapper">
+            <button
+              type="button"
+              class="attachment-btn"
+              aria-label="Attach file"
+            >
+              <i class="fas fa-paperclip"></i>
+            </button>
+            <div class="attachment-menu hidden" id="attachment-menu">
+              <button type="button" id="attach-document">📄 Document</button>
+              <button type="button" id="attach-photo-video">
+                🖼 Photos & Videos
+              </button>
+              <button type="button" id="attach-audio">🎵 Audio</button>
+            </div>
+          </div>
+
+          <input
+            type="file"
+            id="file-input"
+            style="display: none"
+            accept=".pdf, .doc, .docx, .txt, image/, video/, audio/*"
+          />
+
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Type a message..."
+            required
+          />
+          <button
+            type="submit"
+            class="btn primary send-btn"
+            aria-label="Send message"
+          >
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Full Image Preview Modal -->
+    <div id="image-modal" class="image-modal hidden">
+      <img id="modal-image" src="" alt="Full preview" />
+    </div>
+
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="js/call-listener.js"></script>
+    <script src="js/chat.js"></script>
+  </body>
+</html>
