@@ -638,6 +638,9 @@ app.post("/api/forgot-password", async (req, res) => {
     user.otpExpires = Date.now() + 10 * 60 * 1000;
     await user.save();
 
+    console.log(process.env.EMAIL_USER);
+    console.log(process.env.EMAIL_PASS ? "Password Found" : "Password Missing");
+
     try {
       await transporter.verify();
       console.log("SMTP Connected Successfully");
