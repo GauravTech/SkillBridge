@@ -157,7 +157,7 @@ io.on("connection", (socket) => {
       if (!booking) return;
 
       let receiverId;
-      if (booking.studentId.toString() === callerId) {
+      if (booking.studentId.toString() === String(callerId)) {
         console.log("Student is calling");
         const mentor = await mongoose
           .model("User")
@@ -172,7 +172,7 @@ io.on("connection", (socket) => {
       console.log("Receiver:", receiverId);
       console.log("Online:", onlineUsers.has(receiverId));
 
-      if (receiverId && onlineUsers.has(receiverId)) {
+      if (receiverId && onlineUsers.has(String(receiverId))) {
         socket
           .to(receiverId)
           .emit("incomingCall", { roomId, callerName, callerId });
