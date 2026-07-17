@@ -11,6 +11,8 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const PORT = process.env.PORT || 3000;
 const path = require("path");
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 
@@ -30,24 +32,6 @@ if (fs.existsSync(envFile)) {
 // Keep credentials out of source control.  Set these in the process environment
 // (see .env.example) before deploying.
 const JWT_SECRET = process.env.JWT_SECRET || "development-only-change-me";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.sendgrid.net",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "apikey",
-    pass: process.env.SENDGRID_API_KEY,
-  },
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP Error:", error);
-  } else {
-    console.log("✅ SMTP Server is ready");
-  }
-});
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -649,17 +633,18 @@ app.post("/api/forgot-password", async (req, res) => {
     console.log("Sending OTP to:", email);
     console.log("API Key Found:", !!process.env.SENDGRID_API_KEY);
 
-    await transporter.sendMail({
-      from: "skillbridge.otp@gmail.com",
+    await sgMail.send({
       to: email,
+      from: "skillbridge.otp@gmail.com", // your verified sender
       subject: "Your Reset Code",
       html: `
-                <div style="font-family: sans-serif; text-align: center; padding: 20px;">
-                    <h2>Password Reset</h2>
-                    <p>Use the code below to reset your password:</p>
-                    <h1 style="letter-spacing: 5px; color: #6c5ce7;">${otp}</h1>
-                    <p>Valid for 10 minutes.</p>
-                </div>`,
+    <div style="font-family:sans-serif;text-align:center;padding:20px;">
+      <h2>Password Reset</h2>
+      <p>Use the code below to reset your password:</p>
+      <h1 style="letter-spacing:5px;color:#6c5ce7;">${otp}</h1>
+      <p>Valid for 10 minutes.</p>
+    </div>
+  `,
     });
     res.json({ message: "OTP sent to your email!" });
   } catch (err) {
