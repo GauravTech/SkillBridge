@@ -11,6 +11,8 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const PORT = process.env.PORT || 3000;
 const path = require("path");
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
 
 // Small dependency-free .env loader for local development. Environment values
 // supplied by the host always win.
