@@ -52,20 +52,32 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", (room) => {
     socket.join(room);
     socket.currentRoom = room;
+
+    console.log(`Socket ${socket.id} joined room ${room}`);
+
+    const clients = io.sockets.adapter.rooms.get(room);
+
+    console.log(
+      `Room ${room} has ${clients ? clients.size : 0} client(s):`,
+      clients ? [...clients] : [],
+    );
   });
 
   // 1. Relay the Video Offer to the other person in the room
   socket.on("videoOffer", (data) => {
+    console.log("Video Offer:", socket.id, "Room:", data.room);
     socket.to(data.room).emit("videoOffer", data);
   });
 
   // 2. Relay the Video Answer back to the person who started the call
   socket.on("videoAnswer", (data) => {
+    console.log("Video Answer:", socket.id, "Room:", data.room);
     socket.to(data.room).emit("videoAnswer", data);
   });
 
   // 3. Relay ICE Candidates (network paths) so the devices can find each other
   socket.on("iceCandidate", (data) => {
+    console.log("ICE Candidate:", socket.id, "Room:", data.room);
     socket.to(data.room).emit("iceCandidate", data);
   });
 
