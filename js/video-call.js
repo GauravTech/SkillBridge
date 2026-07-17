@@ -29,6 +29,7 @@ let peerConnection = null;
 let timerInterval;
 let seconds = 0;
 let screenStream = null; // State for screen share stream
+let pendingCandidates = [];
 const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
 // User Role Definition: Check localStorage to set the sender role dynamically
@@ -57,13 +58,7 @@ if (!window.socket) {
 // --- START: REFINED ROOM ID LOGIC ---
 // Get the room ID from the URL parameters (e.g., ?room=xyz789)
 const urlParams = new URLSearchParams(window.location.search);
-let roomId = urlParams.get("room");
-
-// If no room ID is in the URL, generate one and redirect to it
-if (!roomId) {
-  roomId = Math.random().toString(36).substring(2, 9);
-  window.location.href = `video-call.html?room=${roomId}`;
-}
+const roomId = urlParams.get("bookingId") || urlParams.get("room");
 
 // --- START: CORRECTED SIDE CHAT SEND MESSAGE/FILE ---
 function enlargeImage(src) {
@@ -132,7 +127,7 @@ if (autoJoin === "true" && currentUser) {
 
       peerConnection.ontrack = (event) => {
         if (!remoteVideo.srcObject) {
-          console.log("Remote stream received");
+          console.log("Remote stream received", event.streams);
           remoteVideo.srcObject = event.streams[0];
           remoteVideo.onloadedmetadata = () => {
             remoteVideo.play();
@@ -307,7 +302,11 @@ function startTimer() {
 }
 
 // console.log("Joining Room:", roomId);
-socket.emit("joinRoom", roomId);
+socket.on("connect", () => {
+  console.log("Socket Connected:", socket.id);
+
+  socket.emit("joinRoom", roomId);
+});
 
 async function startWebRTC() {
   try {
@@ -338,7 +337,7 @@ async function startWebRTC() {
 
     peerConnection.ontrack = (event) => {
       if (!remoteVideo.srcObject) {
-        console.log("Remote stream received");
+        console.log("Remote stream received", event.streams);
         remoteVideo.srcObject = event.streams[0];
         remoteVideo.onloadedmetadata = () => {
           remoteVideo.play();
@@ -357,6 +356,7 @@ async function startWebRTC() {
 
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
+    console.log("Offer sent");
     socket.emit("videoOffer", { offer, room: roomId });
   } catch (err) {
     console.error("Media error:", err);
@@ -432,7 +432,7 @@ socket.on("videoOffer", async ({ offer }) => {
 
       peerConnection.ontrack = (event) => {
         if (!remoteVideo.srcObject) {
-          console.log("Remote stream received");
+          console.log("Remote stream received", event.streams);
           remoteVideo.srcObject = event.streams[0];
           remoteVideo.onloadedmetadata = () => {
             remoteVideo.play();
@@ -466,8 +466,16 @@ socket.on("videoOffer", async ({ offer }) => {
       });
     }
 
-    // Set remote description
+    // Set remote description FIRST
     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    console.log("Offer received");
+
+    // Now add pending ICE candidates
+    while (pendingCandidates.length) {
+      await peerConnection.addIceCandidate(
+        new RTCIceCandidate(pendingCandidates.shift()),
+      );
+    }
 
     // Create answer
     const answer = await peerConnection.createAnswer();
@@ -485,15 +493,24 @@ socket.on("videoOffer", async ({ offer }) => {
 
 socket.on("videoAnswer", async ({ answer }) => {
   await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+  console.log("Answer received");
+
+  while (pendingCandidates.length) {
+    await peerConnection.addIceCandidate(
+      new RTCIceCandidate(pendingCandidates.shift()),
+    );
+  }
 });
 
 socket.on("iceCandidate", async ({ candidate }) => {
   try {
-    if (peerConnection?.remoteDescription) {
+    if (peerConnection.remoteDescription) {
       await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    } else {
+      pendingCandidates.push(candidate);
     }
   } catch (err) {
-    console.error("ICE candidate error:", err);
+    console.error(err);
   }
 });
 

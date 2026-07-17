@@ -9,7 +9,16 @@ if (callToken && callUser) {
 
   if (!window.socket) {
     window.socket = callSocket;
-    callSocket.emit("joinChat", callUser.id);
+  }
+
+  // --- CRITICAL FIX: Emit joinChat on connect & automatic reconnection ---
+  window.socket.on("connect", () => {
+    window.socket.emit("joinChat", callUser.id);
+  });
+
+  // Fallback: If socket is already connected, register immediately
+  if (window.socket.connected) {
+    window.socket.emit("joinChat", callUser.id);
   }
 
   // Create Modal UI
@@ -55,7 +64,8 @@ if (callToken && callUser) {
 
   document.getElementById("accept-call-btn").addEventListener("click", () => {
     document.getElementById("incoming-call-modal").style.display = "none";
-    window.location.href = `video-call.html?room=${activeCallRoom}&autoJoin=true&callerId=${activeCallerId}`;
+    // Using bookingId as the query parameter matches your setup
+    window.location.href = `video-call.html?bookingId=${activeCallRoom}&autoJoin=true&callerId=${activeCallerId}`;
   });
 
   document.getElementById("reject-call-btn").addEventListener("click", () => {

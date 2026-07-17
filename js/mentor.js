@@ -31,6 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  const socket = io(API_URL);
+
+  if (user) {
+    socket.emit("joinChat", user.id);
+  }
+
   // === 2. IMAGE UPLOAD LOGIC ===
   if (uploadInput) {
     uploadInput.addEventListener("change", function (e) {

@@ -46,8 +46,7 @@ const io = socketio(server, {
   },
 });
 
-const onlineUsers = new Set();
-
+const onlineUsers = new Map();
 io.on("connection", (socket) => {
   socket.on("joinRoom", (room) => {
     socket.join(room);
@@ -82,9 +81,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("joinChat", (userId) => {
-    socket.join(userId);
     socket.userId = userId;
-    onlineUsers.add(userId);
+
+    onlineUsers.set(userId, socket.id);
+
+    socket.join(userId);
+
+    console.log("Registered:", userId, socket.id);
+
     io.emit("userOnline", userId);
   });
 
@@ -172,10 +176,16 @@ io.on("connection", (socket) => {
       console.log("Receiver:", receiverId);
       console.log("Online:", onlineUsers.has(receiverId));
 
-      if (receiverId && onlineUsers.has(String(receiverId))) {
-        socket
-          .to(receiverId)
-          .emit("incomingCall", { roomId, callerName, callerId });
+      const receiverSocket = onlineUsers.get(receiverId);
+
+      console.log("Receiver Socket:", receiverSocket);
+
+      if (receiverSocket) {
+        io.to(receiverSocket).emit("incomingCall", {
+          roomId,
+          callerName,
+          callerId,
+        });
       } else {
         socket.emit("callFailed", {
           reason: "User is offline or not responding.",

@@ -55,6 +55,11 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "login.html";
     return;
   }
+  const socket = io(API_URL);
+
+  if (user) {
+    socket.emit("joinChat", user.id);
+  }
 
   // === PROFILE IMAGE BASE64 CONVERSION ===
   uploadInput.addEventListener("change", () => {
