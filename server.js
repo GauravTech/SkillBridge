@@ -151,18 +151,26 @@ io.on("connection", (socket) => {
 
   socket.on("initiateCall", async ({ roomId, callerId, callerName }) => {
     try {
+      console.log("Caller:", callerId);
       const booking = await mongoose.model("Booking").findById(roomId);
+      console.log("Booking:", booking);
       if (!booking) return;
 
       let receiverId;
       if (booking.studentId.toString() === callerId) {
+        console.log("Student is calling");
         const mentor = await mongoose
           .model("User")
           .findOne({ name: booking.mentorName });
+        console.log("Mentor:", mentor);
         if (mentor) receiverId = mentor._id.toString();
       } else {
+        console.log("Mentor is calling");
         receiverId = booking.studentId.toString();
       }
+
+      console.log("Receiver:", receiverId);
+      console.log("Online:", onlineUsers.has(receiverId));
 
       if (receiverId && onlineUsers.has(receiverId)) {
         socket
