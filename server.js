@@ -1,4 +1,3 @@
-require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const socketio = require("socket.io");
@@ -9,12 +8,31 @@ const jwt = require("jsonwebtoken");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const fs = require("fs");
 const PORT = process.env.PORT || 3000;
+const path = require("path");
+
+// Small dependency-free .env loader for local development. Environment values
+// supplied by the host always win.
+const envFile = path.join(__dirname, ".env");
+if (fs.existsSync(envFile)) {
+  fs.readFileSync(envFile, "utf8")
+    .split(/\r?\n/)
+    .forEach((line) => {
+      const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+      if (match && !process.env[match[1]])
+        process.env[match[1]] = match[2].replace(/^['"]|['"]$/g, "");
+    });
+}
+
+// Keep credentials out of source control.  Set these in the process environment
+// (see .env.example) before deploying.
+const JWT_SECRET = process.env.JWT_SECRET || "development-only-change-me";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,
+    user: process.env.EMAIl_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
@@ -27,7 +45,10 @@ const razorpayInstance = new Razorpay({
 const app = express();
 app.use(
   cors({
-    origin: "https://skillbridge-frontend-pi.vercel.app",
+    origin: [
+      "https://skillbridge-frontend-pi.vercel.app",
+      "http://localhost:5500",
+    ],
     credentials: true,
   }),
 );
@@ -40,55 +61,75 @@ app.use(express.static(__dirname));
 const server = http.createServer(app);
 const io = socketio(server, {
   cors: {
-    origin: "https://skillbridge-frontend-pi.vercel.app",
+    origin: [
+      "https://skillbridge-frontend-pi.vercel.app",
+      "http://localhost:5500",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error("Authentication required"));
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return next(new Error("Invalid token"));
+    socket.user = user;
+    next();
+  });
+});
 
-const onlineUsers = new Map();
+const onlineUsers = new Set();
+const activeCalls = new Map(); // key: roomId, value: { callerId, receiverId, status, messageId }
+
 io.on("connection", (socket) => {
-  socket.on("joinRoom", (room) => {
+  socket.on("joinRoom", async (room) => {
+    const user = await mongoose
+      .model("User")
+      .findById(socket.user.id)
+      .select("name");
+    const isDirect =
+      typeof room === "string" &&
+      room.startsWith("direct_") &&
+      room.split("_").slice(1).includes(socket.user.id);
+    const booking = mongoose.Types.ObjectId.isValid(room)
+      ? await mongoose.model("Booking").findById(room)
+      : null;
+    const isSessionParticipant =
+      booking &&
+      (booking.studentId.toString() === socket.user.id ||
+        booking.mentorName === user?.name);
+    if (!isDirect && !isSessionParticipant)
+      return socket.emit("callFailed", {
+        reason: "You are not allowed in this call.",
+      });
     socket.join(room);
     socket.currentRoom = room;
-
-    console.log(`Socket ${socket.id} joined room ${room}`);
-
-    const clients = io.sockets.adapter.rooms.get(room);
-
-    console.log(
-      `Room ${room} has ${clients ? clients.size : 0} client(s):`,
-      clients ? [...clients] : [],
-    );
   });
 
   // 1. Relay the Video Offer to the other person in the room
   socket.on("videoOffer", (data) => {
-    console.log("Video Offer:", socket.id, "Room:", data.room);
+    if (socket.currentRoom !== data.room) return;
     socket.to(data.room).emit("videoOffer", data);
   });
 
   // 2. Relay the Video Answer back to the person who started the call
   socket.on("videoAnswer", (data) => {
-    console.log("Video Answer:", socket.id, "Room:", data.room);
+    if (socket.currentRoom !== data.room) return;
     socket.to(data.room).emit("videoAnswer", data);
   });
 
   // 3. Relay ICE Candidates (network paths) so the devices can find each other
   socket.on("iceCandidate", (data) => {
-    console.log("ICE Candidate:", socket.id, "Room:", data.room);
+    if (socket.currentRoom !== data.room) return;
     socket.to(data.room).emit("iceCandidate", data);
   });
 
-  socket.on("joinChat", (userId) => {
-    socket.userId = userId;
-
-    onlineUsers.set(userId, socket.id);
-
+  socket.on("joinChat", () => {
+    const userId = socket.user.id;
     socket.join(userId);
-
-    console.log("Registered:", userId, socket.id);
-
+    socket.userId = userId;
+    onlineUsers.add(userId);
     io.emit("userOnline", userId);
   });
 
@@ -97,10 +138,40 @@ io.on("connection", (socket) => {
     else socket.emit("userOffline", userId);
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     if (socket.userId) {
       onlineUsers.delete(socket.userId);
       io.emit("userOffline", socket.userId);
+    }
+    if (socket.currentRoom) {
+      socket.to(socket.currentRoom).emit("peerDisconnected", { id: socket.id });
+    }
+    if (socket.activeCallRoom) {
+      const roomId = socket.activeCallRoom;
+      const activeCall = activeCalls.get(roomId);
+      if (activeCall) {
+        if (activeCall.status === "initiated") {
+          try {
+            const Message = mongoose.model("Message");
+            const callMsg = await Message.findById(activeCall.messageId);
+            if (callMsg) {
+              callMsg.text = "❌ Missed call";
+              await callMsg.save();
+              io.to(activeCall.callerId).emit(
+                "receivePrivateMessage",
+                callMsg.toObject(),
+              );
+              io.to(activeCall.receiverId).emit(
+                "receivePrivateMessage",
+                callMsg.toObject(),
+              );
+            }
+          } catch (err) {
+            console.error("Error setting missed call on disconnect:", err);
+          }
+        }
+        activeCalls.delete(roomId);
+      }
     }
   });
 
@@ -153,58 +224,208 @@ io.on("connection", (socket) => {
     },
   );
 
-  socket.on("initiateCall", async ({ roomId, callerId, callerName }) => {
+  socket.on("initiateCall", async ({ roomId, receiverId }) => {
     try {
-      console.log("Caller:", callerId);
-      const booking = await mongoose.model("Booking").findById(roomId);
-      console.log("Booking:", booking);
-      if (!booking) return;
+      const callerId = socket.user.id;
+      const caller = await mongoose
+        .model("User")
+        .findById(callerId)
+        .select("name");
+      const callerName = caller?.name || "Someone";
+      socket.activeCallRoom = roomId;
 
-      let receiverId;
-      if (booking.studentId.toString() === String(callerId)) {
-        console.log("Student is calling");
-        const mentor = await mongoose
-          .model("User")
-          .findOne({ name: booking.mentorName });
-        console.log("Mentor:", mentor);
-        if (mentor) receiverId = mentor._id.toString();
-      } else {
-        console.log("Mentor is calling");
-        receiverId = booking.studentId.toString();
+      let targetReceiverId = receiverId;
+      if (!targetReceiverId) {
+        if (mongoose.Types.ObjectId.isValid(roomId)) {
+          const booking = await mongoose.model("Booking").findById(roomId);
+          if (booking) {
+            if (booking.studentId.toString() === callerId) {
+              const mentor = await mongoose
+                .model("User")
+                .findOne({ name: booking.mentorName });
+              if (mentor) targetReceiverId = mentor._id.toString();
+            } else {
+              targetReceiverId = booking.studentId.toString();
+            }
+          }
+        }
       }
 
-      console.log("Receiver:", receiverId);
-      console.log("Online:", onlineUsers.has(receiverId));
+      if (!targetReceiverId) {
+        socket.emit("callFailed", { reason: "Receiver could not be found." });
+        return;
+      }
 
-      const receiverSocket = onlineUsers.get(receiverId);
+      // Create video call message
+      const Message = mongoose.model("Message");
+      const callMsg = new Message({
+        senderId: callerId,
+        receiverId: targetReceiverId,
+        text: "📹 Video Call",
+        msgType: "call_event",
+        status: "sent",
+      });
+      await callMsg.save();
 
-      console.log("Receiver Socket:", receiverSocket);
+      // Save to activeCalls
+      activeCalls.set(roomId, {
+        callerId,
+        receiverId: targetReceiverId,
+        status: "initiated",
+        messageId: callMsg._id.toString(),
+      });
 
-      if (receiverSocket) {
-        io.to(receiverSocket).emit("incomingCall", {
+      if (onlineUsers.has(targetReceiverId)) {
+        callMsg.status = "delivered";
+        await callMsg.save();
+
+        io.to(targetReceiverId).emit("incomingCall", {
           roomId,
           callerName,
           callerId,
         });
+        io.to(targetReceiverId).emit(
+          "receivePrivateMessage",
+          callMsg.toObject(),
+        );
+        io.to(callerId).emit("receivePrivateMessage", callMsg.toObject());
       } else {
+        callMsg.text = "❌ Missed call";
+        await callMsg.save();
+        activeCalls.delete(roomId);
         socket.emit("callFailed", {
           reason: "User is offline or not responding.",
         });
+        socket.emit("receivePrivateMessage", callMsg.toObject());
       }
+    } catch (err) {
+      console.error(err);
+      socket.emit("callFailed", { reason: "Server error starting call." });
+    }
+  });
+
+  socket.on("callResponse", async ({ callerId, accepted, roomId }) => {
+    try {
+      const activeCall = activeCalls.get(roomId);
+      if (activeCall) {
+        if (activeCall.receiverId !== socket.user.id) return;
+        if (accepted) {
+          activeCall.status = "accepted";
+
+          // Create "📞 Joined video call" message from receiver to caller
+          const Message = mongoose.model("Message");
+          const joinMsg = new Message({
+            senderId: activeCall.receiverId,
+            receiverId: activeCall.callerId,
+            text: "📞 Joined video call",
+            msgType: "call_event",
+            status: "sent",
+          });
+          await joinMsg.save();
+
+          // Emit to both
+          io.to(activeCall.callerId).emit(
+            "receivePrivateMessage",
+            joinMsg.toObject(),
+          );
+          io.to(activeCall.receiverId).emit(
+            "receivePrivateMessage",
+            joinMsg.toObject(),
+          );
+        } else {
+          // Missed call
+          const Message = mongoose.model("Message");
+          const callMsg = await Message.findById(activeCall.messageId);
+          if (callMsg) {
+            callMsg.text = "❌ Missed call";
+            await callMsg.save();
+            io.to(activeCall.callerId).emit(
+              "receivePrivateMessage",
+              callMsg.toObject(),
+            );
+            io.to(activeCall.receiverId).emit(
+              "receivePrivateMessage",
+              callMsg.toObject(),
+            );
+          }
+          activeCalls.delete(roomId);
+        }
+      }
+      socket.to(callerId).emit("callResponse", { accepted, roomId });
     } catch (err) {
       console.error(err);
     }
   });
 
-  socket.on("callResponse", ({ callerId, accepted, roomId }) => {
-    socket.to(callerId).emit("callResponse", { accepted, roomId });
-  });
-
   socket.on("endCall", async ({ roomId, duration }) => {
     try {
-      await mongoose
-        .model("Booking")
-        .findByIdAndUpdate(roomId, { status: "completed" });
+      const activeCall = activeCalls.get(roomId);
+      if (activeCall) {
+        if (
+          ![activeCall.callerId, activeCall.receiverId].includes(socket.user.id)
+        )
+          return;
+        if (
+          activeCall.status === "accepted" &&
+          mongoose.Types.ObjectId.isValid(roomId)
+        ) {
+          await mongoose
+            .model("Booking")
+            .findByIdAndUpdate(roomId, { status: "completed" });
+        }
+        if (activeCall.status === "initiated") {
+          const Message = mongoose.model("Message");
+          const callMsg = await Message.findById(activeCall.messageId);
+          if (callMsg) {
+            callMsg.text = "❌ Missed call";
+            await callMsg.save();
+            io.to(activeCall.callerId).emit(
+              "receivePrivateMessage",
+              callMsg.toObject(),
+            );
+            io.to(activeCall.receiverId).emit(
+              "receivePrivateMessage",
+              callMsg.toObject(),
+            );
+          }
+        }
+        activeCalls.delete(roomId);
+
+        if (activeCall.status === "accepted") {
+          const Message = mongoose.model("Message");
+          const endMsg = await new Message({
+            senderId: socket.user.id,
+            receiverId:
+              activeCall.callerId === socket.user.id
+                ? activeCall.receiverId
+                : activeCall.callerId,
+            text: "📴 Video call ended",
+            msgType: "call_event",
+            status: "sent",
+          }).save();
+          io.to(activeCall.callerId).emit(
+            "receivePrivateMessage",
+            endMsg.toObject(),
+          );
+          io.to(activeCall.receiverId).emit(
+            "receivePrivateMessage",
+            endMsg.toObject(),
+          );
+        }
+      }
+
+      // The client must wait for this event before offering a session review;
+      // at this point the completed status and the end message are committed.
+      if (activeCall?.status === "accepted") {
+        io.to(activeCall.callerId).emit("callEnded", {
+          roomId,
+          completed: true,
+        });
+        io.to(activeCall.receiverId).emit("callEnded", {
+          roomId,
+          completed: true,
+        });
+      }
 
       socket.to(roomId).emit("peerDisconnected", {
         id: socket.id,
@@ -239,11 +460,37 @@ const userSchema = new mongoose.Schema({
   education: { type: String, default: "" },
   skills: { type: [String], default: [] },
   profilePic: { type: String, default: "" },
-  rating: { type: Number, default: 4.0 },
+  rating: { type: Number, default: 0.0 },
+  positiveReviewsCount: { type: Number, default: 0 },
+  negativeReviewsCount: { type: Number, default: 0 },
+  totalReviewsCount: { type: Number, default: 0 },
   resetOTP: { type: String, default: null },
   otpExpires: { type: Date, default: null },
 });
 const User = mongoose.model("User", userSchema);
+
+const reviewSchema = new mongoose.Schema({
+  mentorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  studentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  bookingId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking",
+    required: true,
+    unique: true,
+  },
+  rating: { type: Number, required: true, min: 1, max: 5 },
+  reviewText: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+const Review = mongoose.model("Review", reviewSchema);
 
 // 1. UPDATE THE SCHEMA (Around line 55)
 const bookingSchema = new mongoose.Schema({
@@ -311,7 +558,7 @@ const messageSchema = new mongoose.Schema({
   text: { type: String, default: "" },
   msgType: {
     type: String,
-    enum: ["text", "image", "audio", "video", "file"],
+    enum: ["text", "image", "audio", "video", "file", "call_event"],
     default: "text",
   },
   src: { type: String, default: "" },
@@ -332,7 +579,7 @@ const authenticateToken = (req, res, next) => {
 
   if (!token) return res.status(401).json({ message: "Access denied" });
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ message: "Invalid token" });
     req.user = user;
     next();
@@ -362,11 +609,9 @@ app.post("/api/login", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" },
-    );
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+      expiresIn: "1h",
+    });
     res.json({
       token,
       user: { id: user._id, name: user.name, role: user.role },
@@ -510,6 +755,49 @@ app.get(
   },
 );
 
+// GET: Find active booking between logged-in user and another user
+app.get(
+  "/api/bookings/active-between/:otherUserId",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const currentUserId = req.user.id;
+      const otherUserId = req.params.otherUserId;
+      const otherUser = await User.findById(otherUserId);
+      if (!otherUser) return res.status(404).json({ bookingId: null });
+
+      let booking = null;
+      if (req.user.role === "student") {
+        // Current user is student, other is mentor
+        booking = await Booking.findOne({
+          studentId: currentUserId,
+          mentorName: otherUser.name,
+          status: { $in: ["paid", "ongoing"] },
+        }).sort({ createdAt: -1 });
+      } else {
+        // Current user is mentor, other is student — look up mentor's name from DB
+        const currentUserDoc =
+          await User.findById(currentUserId).select("name");
+        if (!currentUserDoc) return res.json({ bookingId: null });
+        booking = await Booking.findOne({
+          studentId: otherUserId,
+          mentorName: currentUserDoc.name,
+          status: { $in: ["paid", "ongoing"] },
+        }).sort({ createdAt: -1 });
+      }
+
+      if (booking) {
+        res.json({ bookingId: booking._id });
+      } else {
+        res.json({ bookingId: null });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ bookingId: null });
+    }
+  },
+);
+
 // PATCH: Update booking status (Accept/Reject)
 app.patch("/api/bookings/:id", authenticateToken, async (req, res) => {
   try {
@@ -529,6 +817,22 @@ app.patch("/api/bookings/:id", authenticateToken, async (req, res) => {
     ) {
       return res.status(400).json({ message: "Invalid status" });
     }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    const actor = await User.findById(req.user.id).select("name role");
+    const isStudent = booking.studentId.toString() === req.user.id;
+    const isMentor =
+      actor?.role === "mentor" && booking.mentorName === actor.name;
+    const allowed =
+      (isStudent && status === "cancelled" && booking.status === "pending") ||
+      (isMentor &&
+        ["accepted", "rejected"].includes(status) &&
+        booking.status === "pending");
+    if (!allowed)
+      return res
+        .status(403)
+        .json({ message: "You cannot make this booking change" });
 
     const updatedBooking = await Booking.findByIdAndUpdate(
       req.params.id,
@@ -558,7 +862,7 @@ app.get("/api/bookings/:id", authenticateToken, async (req, res) => {
     res.json({
       ...booking.toObject(),
       mentorPic: mentor?.profilePic || "assets/images/default-avatar.png",
-      mentorRating: mentor?.rating || 4.0,
+      mentorRating: mentor?.rating || 0.0,
     });
   } catch (err) {
     res.status(500).json({ message: "Error fetching booking details" });
@@ -663,7 +967,7 @@ app.get("/api/users/mentors", async (req, res) => {
   try {
     // Find users where role is 'mentor'
     const mentors = await User.find({ role: "mentor" }).select(
-      "name bio skills profilePic role rating",
+      "name bio skills profilePic role rating positiveReviewsCount negativeReviewsCount totalReviewsCount",
     );
 
     res.status(200).json(mentors);
@@ -705,7 +1009,7 @@ app.get("/api/chat/contacts", authenticateToken, async (req, res) => {
     } else if (user.role === "mentor") {
       const bookings = await Booking.find({ mentorName: user.name }).populate(
         "studentId",
-        "_id name profilePic role rating",
+        "_id name profilePic role",
       );
       const studentMap = {};
       bookings.forEach((b) => {
@@ -757,4 +1061,202 @@ app.post("/api/chat/send", authenticateToken, async (req, res) => {
   }
 });
 
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.get("/api/chat/unread-count", authenticateToken, async (req, res) => {
+  try {
+    const count = await Message.countDocuments({
+      receiverId: req.user.id,
+      status: { $ne: "seen" },
+    });
+    res.json({ count });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error getting unread count", error: err.message });
+  }
+});
+
+app.post("/api/chat/mark-all-seen", authenticateToken, async (req, res) => {
+  try {
+    const { senderId } = req.body;
+    await Message.updateMany(
+      { senderId, receiverId: req.user.id, status: { $ne: "seen" } },
+      { status: "seen" },
+    );
+    // Emit socket event to the sender so their ticks update
+    io.to(senderId).emit("messageSeen", { receiverId: req.user.id });
+    res.json({ success: true });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error marking messages as seen", error: err.message });
+  }
+});
+
+// POST: Submit a review for a session (completed booking)
+app.post("/api/reviews", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res
+        .status(403)
+        .json({ message: "Only students can submit reviews." });
+    }
+
+    const { bookingId, rating, reviewText } = req.body;
+
+    // 1. Validate inputs
+    if (
+      !bookingId ||
+      !rating ||
+      typeof reviewText !== "string" ||
+      !reviewText.trim()
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Booking ID, rating, and review text are required." });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: "Invalid session booking ID." });
+    }
+
+    const ratingVal = Number(rating);
+    if (isNaN(ratingVal) || ratingVal < 1 || ratingVal > 5) {
+      return res
+        .status(400)
+        .json({ message: "Rating must be between 1 and 5." });
+    }
+
+    // Validate word count (max 200 words)
+    const words = reviewText
+      .trim()
+      .split(/\s+/)
+      .filter((w) => w.length > 0);
+    if (words.length > 200) {
+      return res
+        .status(400)
+        .json({ message: "Review text cannot exceed 200 words." });
+    }
+
+    // 2. Fetch booking
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Session booking not found." });
+    }
+
+    // 3. Ensure student matches booking's studentId
+    if (booking.studentId.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "You can only review sessions you booked." });
+    }
+    if (booking.status !== "completed") {
+      return res.status(400).json({
+        message: "A review can only be submitted after a completed session.",
+      });
+    }
+
+    // 4. Find the mentor
+    const mentor = await User.findOne({
+      name: booking.mentorName,
+      role: "mentor",
+    });
+    if (!mentor) {
+      return res.status(404).json({ message: "Mentor not found." });
+    }
+
+    // 5. Ensure duplicate reviews for the same session are not allowed
+    const existingReview = await Review.findOne({ bookingId });
+    if (existingReview) {
+      return res.status(400).json({
+        message: "You have already submitted a review for this session.",
+      });
+    }
+
+    // 6. Create and save the review
+    const review = new Review({
+      mentorId: mentor._id,
+      studentId: req.user.id,
+      bookingId,
+      rating: ratingVal,
+      reviewText: reviewText.trim(),
+    });
+    await review.save();
+
+    // 7. Recalculate mentor rating statistics
+    const mentorReviews = await Review.find({ mentorId: mentor._id });
+    const totalReviews = mentorReviews.length;
+    const sumRatings = mentorReviews.reduce((sum, r) => sum + r.rating, 0);
+    const averageRating = totalReviews > 0 ? sumRatings / totalReviews : 0.0;
+
+    const positiveReviewsCount = mentorReviews.filter(
+      (r) => r.rating >= 3,
+    ).length;
+    const negativeReviewsCount = mentorReviews.filter(
+      (r) => r.rating <= 2,
+    ).length;
+
+    // Update mentor immediately
+    mentor.rating = Number(averageRating.toFixed(2));
+    mentor.totalReviewsCount = totalReviews;
+    mentor.positiveReviewsCount = positiveReviewsCount;
+    mentor.negativeReviewsCount = negativeReviewsCount;
+    await mentor.save();
+
+    res.status(201).json({
+      message: "Review submitted successfully!",
+      review: {
+        id: review._id,
+        rating: review.rating,
+        reviewText: review.reviewText,
+        createdAt: review.createdAt,
+      },
+      updatedRating: mentor.rating,
+    });
+  } catch (err) {
+    console.error("Submit review error:", err);
+    if (err?.code === 11000) {
+      return res.status(400).json({
+        message: "You have already submitted a review for this session.",
+      });
+    }
+    res
+      .status(500)
+      .json({ message: "Server error submitting review.", error: err.message });
+  }
+});
+
+// GET: Fetch reviews for a specific mentor, ordered by priority:
+// 1. Higher ratings first (5 down to 1)
+// 2. Newest reviews first
+app.get("/api/reviews/mentor/:mentorId", async (req, res) => {
+  try {
+    const { mentorId } = req.params;
+
+    // We populate student name for display purposes
+    const reviews = await Review.find({ mentorId })
+      .populate("studentId", "name profilePic")
+      .sort({ rating: -1, createdAt: -1 });
+
+    const mentor = await User.findById(mentorId);
+    if (!mentor) {
+      return res.status(404).json({ message: "Mentor not found" });
+    }
+
+    res.status(200).json({
+      reviews,
+      stats: {
+        averageRating: mentor.rating || 0.0,
+        totalReviewsCount: mentor.totalReviewsCount || 0,
+        positiveReviewsCount: mentor.positiveReviewsCount || 0,
+        negativeReviewsCount: mentor.negativeReviewsCount || 0,
+      },
+    });
+  } catch (err) {
+    console.error("Fetch reviews error:", err);
+    res.status(500).json({ message: "Server error fetching reviews." });
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
