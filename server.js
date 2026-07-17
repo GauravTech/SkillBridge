@@ -32,7 +32,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "development-only-change-me";
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIl_USER,
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
