@@ -41,6 +41,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ SMTP Error:", error);
+  } else {
+    console.log("✅ SMTP Server is ready");
+  }
+});
+
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -638,6 +646,9 @@ app.post("/api/forgot-password", async (req, res) => {
     user.otpExpires = Date.now() + 10 * 60 * 1000;
     await user.save();
 
+    console.log("Sending OTP to:", email);
+    console.log("API Key Found:", !!process.env.SENDGRID_API_KEY);
+
     await transporter.sendMail({
       from: "skillbridge.otp@gmail.com",
       to: email,
@@ -652,10 +663,14 @@ app.post("/api/forgot-password", async (req, res) => {
     });
     res.json({ message: "OTP sent to your email!" });
   } catch (err) {
-    console.error("BREVO ERROR:", err); // This prints the real error to your CMD
-    res
-      .status(500)
-      .json({ message: "Error sending email. Check server console." });
+    console.error("========== EMAIL ERROR ==========");
+    console.error(err);
+    console.error(err.response);
+    console.error(err.response?.body);
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 });
 
